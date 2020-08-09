@@ -77,3 +77,16 @@
 - **When** 5(?) minutes have elapsed
 - **Then** *The reservation is canceled? The user is officially late?.* Unsure
 
+
+### _Feature: canceling a reservation_
+
+#### _Provides a mechanism for the user to cancel a reservation_
+
+### Scenario: The user has a reservation and chooses to cancel.
+
+- **Given** The user has a reservation
+- **When** Anytime before the end of the reservation
+- **Then**The time is released and the next user is assigned the slot to start within 5(?) minutes
+
+
+

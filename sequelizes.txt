@@ -1,0 +1,5 @@
+npx sequelize model:generate --name User --attributes phoneNumber:string,name:string
+npx sequelize model:generate --name Type --attributes typeName:string
+npx sequelize model:generate --name Request --attributes user_id:integer type_id:integer
+npx sequelize model:generate --name Court --attributes court_name:string
+npx sequelize model:generate --name Court_type --attributes court_id:integer type_id:integer

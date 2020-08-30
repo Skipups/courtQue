@@ -16,8 +16,8 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   Request.init({
-    user_id: DataTypes.INTEGER,
-    type_id: DataTypes.INTEGER
+    UserId: DataTypes.INTEGER,
+    TypeId: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Request',

@@ -4,7 +4,7 @@ const { rawListeners } = require("process");
 var app = express();
 var bodyParser = require('body-parser');
 
-const db = require("../server/models");
+const db = require("./models");
 const User = db.Users;
 const Op = db.Sequelize.Op;
 const Sequelize = require('sequelize');
@@ -95,6 +95,7 @@ function IsNullOrWhiteSpace(text) {
     return text === null || text.match(/^\s*$/) !== null;
 }
 
-app.listen(3000, () => {
- console.log("Server running on port 3000");
+const listenPort = process.env.PORT || 3000;
+app.listen(listenPort, () => {
+ console.log("Server running on port " + listenPort);
 });

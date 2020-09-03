@@ -8,10 +8,11 @@ const db = require("./models");
 const User = db.Users;
 const Op = db.Sequelize.Op;
 const Sequelize = require('sequelize');
+const cors = require('cors')
 
 // app.use(bodyParser.urlencoded({extended:true}));
 app.use(express.json())
-
+app.use(cors())
 app.get("/users/:id", async (req, res, next) => {
     if (!('authorization' in req.headers)) {
       return res.sendStatus(401);

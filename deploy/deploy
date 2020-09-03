@@ -53,7 +53,7 @@ then
 fi
 cp -r ${SOURCE}/. $TARGET
 
-pushd ./heroku/nycc-pier27queue-20200709
+pushd $TARGET
 
 if [ "$VERBOSE" = 1 ] 
 then 

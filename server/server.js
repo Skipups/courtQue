@@ -9,7 +9,8 @@ const User = db.Users;
 const Op = db.Sequelize.Op;
 const Sequelize = require('sequelize');
 
-app.use(bodyParser.urlencoded({extended:true}));
+// app.use(bodyParser.urlencoded({extended:true}));
+app.use(express.json())
 
 app.get("/users/:id", async (req, res, next) => {
     if (!('authorization' in req.headers)) {
@@ -54,11 +55,17 @@ app.get("/users", async (req, res, next) => {
 app.post("/users", async (req, res, next) => {
     console.debug("url   : "+req.url);
 
+    console.log(req.body);
+    console.log(req.params);
+    console.log(req.query);
+    console.log(req.res);
+    console.log(req.route);
+
     if (!FieldHasValue('name', req.body)
         || !FieldHasValue('phoneNumber', req.body)
     )
     {
-        return res.sendStatus(400);
+        return res.send(req.body);
     }
 
     const newUser = User.build({

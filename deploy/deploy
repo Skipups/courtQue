@@ -1,0 +1,79 @@
+#!/bin/bash
+
+VERBOSE=0
+SOURCE=""
+TARGET=""
+
+while [[ $# -gt 0 ]]
+do
+ key="$1"
+
+ case $key in
+  -v|--verbose)
+  VERBOSE=1
+  shift
+  ;;
+  -s|--source)
+  SOURCE="$2"
+  shift
+  shift
+  ;;
+  -t|--target)
+  TARGET="$2"
+  shift
+  shift
+  ;;
+  *)
+  exit 1
+ esac
+done
+
+if [ "$VERBOSE" = 1 ]
+then
+ echo "VERBOSE : ${VERBOSE}"
+ echo "SOURCE : ${SOURCE}"
+ echo "TARGET : ${TARGET}"
+fi
+
+if [ -z "$SOURCE" ]
+then
+ echo "Missing source (-s | --source)"
+ exit 1
+fi
+
+if [ -z "$TARGET" ]
+then
+ echo "Missing target (-t | --target)"
+ exit 1
+fi
+
+if [ "$VERBOSE" = 1 ]
+then
+ echo "copy files from $SOURCE to $TARGET"
+fi
+cp -r ${SOURCE}/. $TARGET
+
+pushd $TARGET
+
+if [ "$VERBOSE" = 1 ] 
+then 
+ echo "add files to remote repo" 
+fi
+
+git add .
+
+if [ "$VERBOSE" = 1 ]
+then
+ echo "copy files from $SOURCE to $TARGET"
+fi
+
+commit_msg=$(date +'%Y%m%d_%H%M%S')
+git commit -am $commit_msg
+
+if [ "$VERBOSE" = 1 ]
+then
+ echo "push changes to remote"
+fi
+
+git push heroku master
+popd

@@ -4,14 +4,10 @@ const { rawListeners } = require("process");
 var app = express();
 var bodyParser = require('body-parser');
 
-const { Pool, Client } = require('pg')
-const pool = new Pool({
-    user: 'courtque',
-    host: 'localhost',
-    database: 'courtque',
-    password: 'courtque',
-    port: 5432,
-  })
+const db = require("./models");
+const User = db.Users;
+const Op = db.Sequelize.Op;
+const Sequelize = require('sequelize');
 
 app.use(bodyParser.urlencoded({extended:true}));
 
@@ -25,36 +21,35 @@ app.get("/users/:id", async (req, res, next) => {
     let userId = req.params.id;
     
     console.debug("url   : "+req.url);
+    console.debug('userId : '+userId);
     console.debug('token : '+token);
 
-    let userInfo = {};
+    const userInfo = await User.findOne({
+        where: {
+            [Op.and]: [
+                Sequelize.literal('"Users"."userId"::varchar = \'' + userId + '\''),
+                Sequelize.literal('"Users"."token"::varchar = \'' + token + '\'')
+            ]
+        }
+    });
 
-    let isValid = false;
-    const client = await pool.connect()
-    try {
-        const res = await client.query("SELECT name, phoneNumber from users where userid = $1 and token = $2", [req.params.id, token])
-        
-        isValid = res.rows.length > 0;
-
-        if (isValid) {
-            // initialize userInfo object
-            userInfo = {
-                'id': req.params.id,
-                'name': res.rows[0].name,
-                'phoneNumber': res.rows[0].phonenumber
-            };
-        }    
-    } finally {
-        client.release();    
-    }
-
-    if (!isValid) {
+    if (isEmpty(userInfo))
+    {
         return res.sendStatus(401);
     }
 
     //return userInfo
-    res.json(userInfo);
+    return res.json(userInfo);
    });
+
+app.get("/users", async (req, res, next) => {
+    console.debug("url   : "+req.url);
+
+    const users = await User.findAll();
+
+    return res.json(users);
+});
+
 
 app.post("/users", async (req, res, next) => {
     console.debug("url   : "+req.url);
@@ -66,29 +61,26 @@ app.post("/users", async (req, res, next) => {
         return res.sendStatus(400);
     }
 
-    let newUser = {
-        'name': req.body.hasOwnProperty('name') ? req.body.name : '',
-        'phoneNumber': req.body.hasOwnProperty('phoneNumber') ? req.body.phoneNumber : ''
-    };
+    const newUser = User.build({
+        name: req.body.hasOwnProperty('name') ? req.body.name : '',
+        phoneNumber: req.body.hasOwnProperty('phoneNumber') ? req.body.phoneNumber : ''
+    });
 
-    let userRegistrationInfo = {};
+    await newUser.save();
 
-    const client = await pool.connect()
-    try {
-        const res = await client.query("insert into users (name, phoneNumber) values ($1, $2) returning userid, token", [newUser.name, newUser.phoneNumber])
-
-        userRegistrationInfo = {
-            'id': res.rows[0].userid,
-            'token': res.rows[0].token
-        };
-        
-    } finally {
-        client.release();    
-    }
-
-    res.json(userRegistrationInfo);
+    res.json(newUser);
    });
 
+function isEmpty(obj) {
+    for (var key in obj){
+        if (obj.hasOwnProperty(key))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 function FieldHasValue(fieldName, fields) {
     console.debug('FieldHasValue - ' + fieldName);
@@ -103,6 +95,7 @@ function IsNullOrWhiteSpace(text) {
     return text === null || text.match(/^\s*$/) !== null;
 }
 
-app.listen(3000, () => {
- console.log("Server running on port 3000");
+const listenPort = process.env.PORT || 3000;
+app.listen(listenPort, () => {
+ console.log("Server running on port " + listenPort);
 });

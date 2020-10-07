@@ -3,6 +3,8 @@ const { PRIORITY_LOW } = require("constants");
 const { rawListeners } = require("process");
 var app = express();
 var bodyParser = require('body-parser');
+var admin = require("firebase-admin");
+    
 
 const db = require("./models");
 const User = db.Users;
@@ -24,17 +26,9 @@ app.get("/users/:id", async (req, res, next) => {
     console.debug('userId : '+userId);
     console.debug('token : '+token);
 
-    const userInfo = await User.findOne({
-        where: {
-            [Op.and]: [
-                Sequelize.literal('"Users"."userId"::varchar = \'' + userId + '\''),
-                Sequelize.literal('"Users"."token"::varchar = \'' + token + '\'')
-            ]
-        }
-    });
+    const userInfo = await GetAuthenticatedUserInfo(userId, token);
 
-    if (isEmpty(userInfo))
-    {
+    if (isEmpty(userInfo)) {
         return res.sendStatus(401);
     }
 
@@ -56,14 +50,29 @@ app.post("/users", async (req, res, next) => {
 
     if (!FieldHasValue('name', req.body)
         || !FieldHasValue('phoneNumber', req.body)
-    )
+        || !FieldHasValue('verificationId', req.body)
+        )
     {
         return res.sendStatus(400);
     }
 
+    const userInfo = await User.findOne({
+        where: {
+            [Op.and]: [
+                Sequelize.literal('"Users"."phoneNumber"::varchar = \'' + req.body.phoneNumber + '\''),
+                Sequelize.literal('"Users"."verified" = true')
+            ]
+        }
+    });
+
+    if (!isEmpty(userInfo)) {
+        return res.sendStatus(422);
+    }
+
     const newUser = User.build({
-        name: req.body.hasOwnProperty('name') ? req.body.name : '',
-        phoneNumber: req.body.hasOwnProperty('phoneNumber') ? req.body.phoneNumber : ''
+        name: req.body.name,
+        phoneNumber: req.body.phoneNumber,
+        token: req.body.verificationId
     });
 
     await newUser.save();
@@ -91,9 +100,57 @@ function FieldHasValue(fieldName, fields) {
 
     return fields.hasOwnProperty(fieldName) && !IsNullOrWhiteSpace(fields[fieldName]);
 }
+
 function IsNullOrWhiteSpace(text) {
     return text === null || text.match(/^\s*$/) !== null;
 }
+
+async function GetAuthenticatedUserInfo(userId, token) {
+    const userInfo = await User.findOne({
+        where: {
+            [Op.and]: [
+                Sequelize.literal('"Users"."userId"::varchar = \'' + userId + '\''),
+                Sequelize.literal('"Users"."token"::varchar = \'' + token + '\'')
+            ]
+        }
+    });
+
+    if (!isEmpty(userInfo) && !userInfo.verified) {
+        console.log("user("+userInfo.userId+") : check against firebase!");
+
+        var serviceAccount = JSON.parse(process.env.FIREBASE_SECRET);
+        
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+          databaseURL: "https://nycc-courtque.firebaseio.com"
+        });
+        
+        // idToken comes from the client app
+        await admin.auth().verifyIdToken(token)
+            .then(async function(decodedToken) {
+                let uid = decodedToken.uid;
+                //res.send({ uid })
+                
+                //update database
+                userInfo.verified = true;
+                await userInfo.save();
+                
+                //res.sendStatus(200);
+             // ...
+            }).catch(function(error) {
+                // Handle error
+                console.log(error)
+                //res.send("Error!")
+                //return res.sendStatus(404);
+            });
+    
+    } else {
+        console.log("user("+userInfo.userId+") : verified!");
+    }
+
+    return userInfo;
+} 
+
 
 const listenPort = process.env.PORT || 3000;
 app.listen(listenPort, () => {

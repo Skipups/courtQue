@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "courtQue",
-    "slug": "courtQue",
+    "name": "firebase-phoneauth",
+    "slug": "firebase-phoneauth",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

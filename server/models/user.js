@@ -28,9 +28,14 @@ module.exports = (sequelize, DataTypes) => {
 			allowNull: false,
 		},
 		token:{
-			type: DataTypes.UUID,
+			type: DataTypes.STRING(1000),
       allowNull: false,
-			defaultValue: DataTypes.UUIDV4      
+			defaultValue: ""      
+		},    
+		verified:{
+			type: DataTypes.BOOLEAN,
+      allowNull: false,
+			defaultValue: false      
 		}    
   }, {
     sequelize,

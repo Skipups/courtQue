@@ -1,0 +1,14 @@
+{
+    "COURTQUE_SERVER_NEW_USER_URL" : "http://ubuntu-dev-1.home.minuk.net:3000/users",
+    "FIREBASE_CONFIG" :
+    {
+        "apiKey": "AIzaSyAD7WCYBm_kM6giB_fKl0fZY6AohnX3V3k",
+        "authDomain": "nycc-courtque.firebaseapp.com",
+        "databaseURL": "https://nycc-courtque.firebaseio.com",
+        "projectId": "nycc-courtque",
+        "storageBucket": "nycc-courtque.appspot.com",
+        "messagingSenderId": "944648360337",
+        "appId": "1:944648360337:web:bf09a492468cb983d0ca30",
+        "measurementId": "G-GQT5TYD9C1"
+    }
+}
